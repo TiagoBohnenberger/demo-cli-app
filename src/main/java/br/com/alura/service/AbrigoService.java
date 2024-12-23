@@ -13,9 +13,9 @@ import java.util.Scanner;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import br.com.alura.command.Command;
 import br.com.alura.command.CommandOption;
-import br.com.alura.command.CommandResult;
+import br.com.alura.core.CLICommand;
+import br.com.alura.core.ConsoleReader;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -24,23 +24,26 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
+@CLICommand
 @ApplicationScoped
-public class AbrigoService implements Command {
+public class AbrigoService {
 
     private final HttpClient client;
+    private final ConsoleReader consoleReader;
 
     @Inject
-    private AbrigoService(HttpClient httpClient) {
+    private AbrigoService(HttpClient httpClient, ConsoleReader consoleReader) {
         this.client = httpClient;
+        this.consoleReader = consoleReader;
     }
 
     @CommandOption(1)
     public void listarTodos() throws IOException, InterruptedException {
         String uri = "http://localhost:8080/abrigos";
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(uri))
-            .method("GET", BodyPublishers.noBody())
-            .build();
+                .uri(URI.create(uri))
+                .method("GET", BodyPublishers.noBody())
+                .build();
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         String responseBody = response.body();
         JsonArray jsonArray = JsonParser.parseString(responseBody).getAsJsonArray();
@@ -49,10 +52,11 @@ public class AbrigoService implements Command {
             JsonObject jsonObject = element.getAsJsonObject();
             long id = jsonObject.get("id").getAsLong();
             String nome = jsonObject.get("nome").getAsString();
-            System.out.println(id +" - " +nome);
+            System.out.println(id + " - " + nome);
         }
     }
 
+    @CommandOption(2)
     public void cadastrar() throws IOException, InterruptedException {
         System.out.println("Digite o nome do abrigo:");
         String nome = new Scanner(System.in).nextLine();
@@ -68,10 +72,10 @@ public class AbrigoService implements Command {
 
         String uri = "http://localhost:8080/abrigos";
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(uri))
-            .header("Content-Type", "application/json")
-            .method("POST", BodyPublishers.ofString(json.toString()))
-            .build();
+                .uri(URI.create(uri))
+                .header("Content-Type", "application/json")
+                .method("POST", BodyPublishers.ofString(json.toString()))
+                .build();
 
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         int statusCode = response.statusCode();
@@ -86,15 +90,16 @@ public class AbrigoService implements Command {
 
     }
 
+    @CommandOption(3)
     public void listarPetsDoAbrigo() throws IOException, InterruptedException {
         System.out.println("Digite o id ou nome do abrigo:");
         String idOuNome = new Scanner(System.in).nextLine();
 
-        String uri = "http://localhost:8080/abrigos/" +idOuNome +"/pets";
+        String uri = "http://localhost:8080/abrigos/" + idOuNome + "/pets";
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(uri))
-            .method("GET", BodyPublishers.noBody())
-            .build();
+                .uri(URI.create(uri))
+                .method("GET", BodyPublishers.noBody())
+                .build();
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         int statusCode = response.statusCode();
         if (statusCode == 404 || statusCode == 500) {
@@ -111,10 +116,11 @@ public class AbrigoService implements Command {
             String nome = jsonObject.get("nome").getAsString();
             String raca = jsonObject.get("raca").getAsString();
             int idade = jsonObject.get("idade").getAsInt();
-            System.out.println(id +" - " +tipo +" - " +nome +" - " +raca +" - " +idade +" ano(s)");
+            System.out.println(id + " - " + tipo + " - " + nome + " - " + raca + " - " + idade + " ano(s)");
         }
     }
 
+    @CommandOption(4)
     public void importarPetsDoAbrigo() throws IOException, InterruptedException {
         System.out.println("Digite o id ou nome do abrigo:");
         String idOuNome = new Scanner(System.in).nextLine();
@@ -126,7 +132,7 @@ public class AbrigoService implements Command {
         try {
             reader = new BufferedReader(new FileReader(nomeArquivo));
         } catch (IOException e) {
-            System.out.println("Erro ao carregar o arquivo: " +nomeArquivo);
+            System.out.println("Erro ao carregar o arquivo: " + nomeArquivo);
             return;
         }
         String line;
@@ -149,10 +155,10 @@ public class AbrigoService implements Command {
 
             String uri = "http://localhost:8080/abrigos/" + idOuNome + "/pets";
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .header("Content-Type", "application/json")
-                .method("POST", BodyPublishers.ofString(json.toString()))
-                .build();
+                    .uri(URI.create(uri))
+                    .header("Content-Type", "application/json")
+                    .method("POST", BodyPublishers.ofString(json.toString()))
+                    .build();
 
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
             int statusCode = response.statusCode();
@@ -169,12 +175,5 @@ public class AbrigoService implements Command {
             }
         }
         reader.close();
-    }
-
-    @Override
-    public CommandResult execute() {
-        log.info("Command 1");
-
-        return null;
     }
 }

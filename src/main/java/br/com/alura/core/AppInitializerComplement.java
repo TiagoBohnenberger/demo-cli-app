@@ -7,21 +7,28 @@ import java.util.List;
 import java.util.Set;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.event.Startup;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.ProcessBean;
 
 import br.com.alura.util.Functions;
+import br.com.alura.util.Try;
 import lombok.extern.log4j.Log4j2;
-import org.jboss.weld.environment.se.events.ContainerInitialized;
-import org.jboss.weld.environment.se.events.ContainerShutdown;
 
 @Log4j2
+@SuppressWarnings("unused")
 class AppInitializerComplement implements Extension {
     private static final Set<Class<? extends Annotation>> annotations = Set.of(Eager.class, ApplicationScoped.class);
 
     private final List<Bean<?>> eagerBeansList = new ArrayList<>();
+
+    private static <T> boolean isAnnotationsPresentOn(ProcessBean<T> bean) {
+        return annotations.stream().allMatch(ann ->
+                bean.getAnnotated().isAnnotationPresent(ann));
+    }
 
     private <T> void init(@Observes ProcessBean<T> bean) {
         if (isAnnotationsPresentOn(bean)) {
@@ -29,19 +36,15 @@ class AppInitializerComplement implements Extension {
         }
     }
 
-    private static <T> boolean isAnnotationsPresentOn(ProcessBean<T> bean) {
-        return annotations.stream()
-                .allMatch(ann ->
-                        bean.getAnnotated().isAnnotationPresent(ann));
-    }
-
-    private void load(@Observes ContainerInitialized event, BeanManager beanManager) {
+    private void load(@Observes Startup event, BeanManager beanManager) {
         sortByHighestPrecedence();
         initEagerBeans(beanManager);
     }
 
-    private void onApplicationDestroyed(@Observes ContainerShutdown event) {
-        Functions.println("Até mais!");
+    private void beforeShutdown(@Observes BeforeShutdown event) {
+        Try.with("* ATÉ MAIS //")
+                .apply(Functions::printAnsiArt)
+                .orElse(Functions::println);
     }
 
     private void initEagerBeans(BeanManager beanManager) {

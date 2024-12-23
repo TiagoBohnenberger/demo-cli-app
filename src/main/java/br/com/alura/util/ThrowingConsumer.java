@@ -1,7 +1,7 @@
 package br.com.alura.util;
 
 @FunctionalInterface
-public interface ThrowingConsumer<E extends Exception> {
+public interface ThrowingConsumer<T, E extends Exception> {
 
-    void apply() throws E;
+    void accept(T obj) throws E;
 }

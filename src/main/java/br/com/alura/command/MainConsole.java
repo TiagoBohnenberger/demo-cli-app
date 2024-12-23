@@ -1,13 +1,14 @@
 package br.com.alura.command;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import br.com.alura.core.Eager;
-import lombok.SneakyThrows;
+import br.com.alura.util.Functions;
+import br.com.alura.util.Try;
 import lombok.extern.log4j.Log4j2;
 
-import static br.com.alura.util.Functions.printAnsiArt;
 import static br.com.alura.util.Functions.println;
 
 
@@ -21,12 +22,12 @@ class MainConsole {
     @Inject
     private MainConsole(UserInputHandler userInputHandler) {
         this.userInputHandler = userInputHandler;
-        welcome();
     }
 
-    @SneakyThrows
     private void welcome() {
-        printAnsiArt("ADOPET APP");
+        Try.with("* ADOPET APP //")
+                .apply(Functions::printAnsiArt)
+                .orElse(Functions::println);
 
         println("Escolha uma opção:");
         println("1 -> Listar abrigos cadastrados");
@@ -37,6 +38,13 @@ class MainConsole {
         println("Digite o número da opção e pressione Enter");
         println();
 
-        userInputHandler.startInteraction();
+        userInputHandler.start();
     }
+
+
+    @PostConstruct
+    private void postConstruct() {
+        welcome();
+    }
+
 }

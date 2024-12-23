@@ -1,74 +1,41 @@
 package br.com.alura.command;
 
-import java.util.Scanner;
-import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import br.com.alura.core.ConsoleReader;
+import br.com.alura.core.RunnableExecutor;
+import br.com.alura.util.Wait;
 import lombok.extern.log4j.Log4j2;
-
-import static br.com.alura.util.Functions.print;
 
 @Log4j2
 @ApplicationScoped
-public class UserInputHandler {
+public class UserInputHandler implements Runnable {
 
-    private final CommandHolder valueHolder;
-    @Getter
-    private final Scanner scanner;
     private final CommandHandler commandHandler;
+    private final ConsoleReader reader;
+    private final RunnableExecutor runnableExecutor;
+    private final Wait consoleReaderWait;
 
     @Inject
-    private UserInputHandler(CommandHandler commandHandler) {
+    private UserInputHandler(CommandHandler commandHandler, ConsoleReader reader) {
         this.commandHandler = commandHandler;
-        this.scanner = new Scanner(System.in);
-        this.valueHolder = new CommandHolder();
+        this.reader = reader;
+        this.consoleReaderWait = new Wait(reader);
+        this.runnableExecutor = RunnableExecutor.instance();
     }
 
-    public void startInteraction() {
-        while (valueHolder.isNotExit()) {
-            print("Selecione sua opção: ");
-            readInput();
-            if (valueHolder.isExit) break;
-            commandHandler.handle(this);
-        }
+    public void start() {
+        runnableExecutor.execute(this);
+        runnableExecutor.execute(reader);
     }
 
-    private void readInput() {
-        valueHolder.update(Integer.parseInt(scanner.nextLine()));
-    }
+    @Override
+    public void run() {
+        while (reader.isNotExit()) {
+            consoleReaderWait.ifNecessary();
 
-    public Integer getValue() {
-        return this.valueHolder.value;
-    }
-
-    public boolean isExit() {
-        return this.valueHolder.value == 5;
-    }
-
-    @PreDestroy
-    private void preDestroy() {
-        this.scanner.close();
-    }
-
-
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    private static class CommandHolder {
-        private boolean isExit;
-        private int value;
-
-        private boolean isNotExit() {
-            return this.value != 5;
-        }
-
-        private void update(int value) {
-            this.value = value;
-            this.isExit = value == 5;
+            commandHandler.handle(reader.poll());
         }
     }
 }
