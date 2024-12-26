@@ -1,6 +1,7 @@
 package br.com.alura.config;
 
 import java.net.http.HttpClient;
+import java.util.Properties;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Produces;
@@ -13,6 +14,7 @@ import com.google.gson.GsonBuilder;
 @ApplicationScoped
 class AppConfig {
 
+    @Default
     @Produces
     @ApplicationScoped
     HttpClient httpClient() {
@@ -31,5 +33,12 @@ class AppConfig {
     @Singleton
     Gson gson() {
         return new GsonBuilder().create();
+    }
+
+    @Default
+    @Produces
+    @Singleton
+    Properties properties() {
+        return new Properties();
     }
 }

@@ -1,9 +1,16 @@
 package br.com.alura.core;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -14,6 +21,7 @@ import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.ProcessBean;
 
+import br.com.alura.util.ClassUtils;
 import br.com.alura.util.Functions;
 import br.com.alura.util.Try;
 import lombok.extern.log4j.Log4j2;
@@ -36,9 +44,24 @@ class AppInitializerComplement implements Extension {
         }
     }
 
-    private void load(@Observes Startup event, BeanManager beanManager) {
+    private void onApplicationStartup(@Observes Startup event, BeanManager beanManager, Properties properties) throws IOException, URISyntaxException {
+        loadExternalConfigurations(properties);
         sortByHighestPrecedence();
         initEagerBeans(beanManager);
+    }
+
+    private void loadExternalConfigurations(Properties properties) throws IOException, URISyntaxException {
+        String path = "application.properties";
+        ClassLoader cl = ClassUtils.getDefaultClassLoader();
+        URL url = (cl != null ? cl.getResource(path) : ClassLoader.getSystemResource(path));
+
+        if (url == null) {
+            return;
+        }
+
+        Path path1 = Paths.get(url.toURI());
+
+        properties.load(Files.newBufferedReader(path1));
     }
 
     private void beforeShutdown(@Observes BeforeShutdown event) {
