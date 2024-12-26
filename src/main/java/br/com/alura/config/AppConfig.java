@@ -7,6 +7,8 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 
 import br.com.alura.core.ConsoleReader;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 @ApplicationScoped
 class AppConfig {
@@ -22,5 +24,12 @@ class AppConfig {
     @Singleton
     ConsoleReader consoleReader() {
         return ConsoleReader.instance();
+    }
+
+    @Default
+    @Produces
+    @Singleton
+    Gson gson() {
+        return new GsonBuilder().create();
     }
 }

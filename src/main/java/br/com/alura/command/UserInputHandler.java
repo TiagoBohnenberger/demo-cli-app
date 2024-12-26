@@ -26,8 +26,8 @@ public class UserInputHandler implements Runnable {
     }
 
     public void start() {
-        runnableExecutor.execute(this);
-        runnableExecutor.execute(reader);
+        runnableExecutor.executeOnNewThread(this, "INPUT-HANDLER");
+        runnableExecutor.executeOnNewThread(reader, "CONSOLE-READER");
     }
 
     @Override

@@ -24,7 +24,15 @@ public class RunnableExecutor {
         return instance;
     }
 
-    public void execute(Runnable target) {
-        threadFactory.newThread(target).start();
+    public void executeOnNewThread(Runnable target, String threadName) {
+        Thread thread = threadFactory.newThread(target);
+        if (threadName != null) {
+            thread.setName(threadName);
+        }
+        thread.start();
+    }
+
+    public void executeOnNewThread(Runnable target) {
+        executeOnNewThread(target, null);
     }
 }

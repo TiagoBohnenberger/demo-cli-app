@@ -29,6 +29,12 @@ class MainConsole {
                 .apply(Functions::printAnsiArt)
                 .orElse(Functions::println);
 
+        menu();
+
+        userInputHandler.start();
+    }
+
+    static void menu() {
         println("Escolha uma opção:");
         println("1 -> Listar abrigos cadastrados");
         println("2 -> Cadastrar novo abrigo");
@@ -37,8 +43,6 @@ class MainConsole {
         println("5 -> Sair");
         println("Digite o número da opção e pressione Enter");
         println();
-
-        userInputHandler.start();
     }
 
 
