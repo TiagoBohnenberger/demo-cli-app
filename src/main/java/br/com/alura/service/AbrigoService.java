@@ -9,106 +9,114 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.Scanner;
+import java.util.List;
+import java.util.Properties;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import br.com.alura.command.CommandOption;
 import br.com.alura.core.CLICommand;
 import br.com.alura.core.ConsoleReader;
+import br.com.alura.domain.Abrigo;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
+
+import static br.com.alura.util.Functions.println;
 
 
 @Slf4j
 @CLICommand
 @ApplicationScoped
 public class AbrigoService {
-
+    private final String baseUrl;
     private final HttpClient client;
     private final ConsoleReader consoleReader;
 
     @Inject
-    private AbrigoService(HttpClient httpClient, ConsoleReader consoleReader) {
-        this.client = httpClient;
+    public AbrigoService(HttpClient client, ConsoleReader consoleReader, Properties properties) {
+        this.client = client;
         this.consoleReader = consoleReader;
+        this.baseUrl = properties.getProperty("routes.abrigo.base.url", "http://localhost:8080/abrigos");
     }
 
     @CommandOption(1)
     public void listarTodos() throws IOException, InterruptedException {
-        String uri = "http://localhost:8080/abrigos";
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .method("GET", BodyPublishers.noBody())
+                .uri(URI.create(baseUrl))
+                .GET()
                 .build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        String responseBody = response.body();
-        JsonArray jsonArray = JsonParser.parseString(responseBody).getAsJsonArray();
-        System.out.println("Abrigos cadastrados:");
-        for (JsonElement element : jsonArray) {
-            JsonObject jsonObject = element.getAsJsonObject();
-            long id = jsonObject.get("id").getAsLong();
-            String nome = jsonObject.get("nome").getAsString();
-            System.out.println(id + " - " + nome);
+
+        HttpResponse<List<Abrigo>> response = client
+                .send(request, JsonBody.handle(new TypeToken<List<Abrigo>>() {}.getType()));
+
+        List<Abrigo> abrigos = response.body();
+
+        if (abrigos.isEmpty()) {
+            println("Não há abrigos cadastrados");
+            return;
         }
+
+        println("Abrigos cadastrados:");
+        abrigos.forEach(System.out::println);
     }
 
     @CommandOption(2)
     public void cadastrar() throws IOException, InterruptedException {
-        System.out.println("Digite o nome do abrigo:");
-        String nome = new Scanner(System.in).nextLine();
-        System.out.println("Digite o telefone do abrigo:");
-        String telefone = new Scanner(System.in).nextLine();
-        System.out.println("Digite o email do abrigo:");
-        String email = new Scanner(System.in).nextLine();
+        println("Digite o nome do abrigo:");
+        String nome = consoleReader.nextLine();
 
-        JsonObject json = new JsonObject();
-        json.addProperty("nome", nome);
-        json.addProperty("telefone", telefone);
-        json.addProperty("email", email);
+        println("Digite o telefone do abrigo:");
+        String telefone = consoleReader.nextLine();
 
-        String uri = "http://localhost:8080/abrigos";
+        println("Digite o email do abrigo:");
+        String email = consoleReader.nextLine();
+
+        CadastroAbrigoRequest cadastroAbrigo = new CadastroAbrigoRequest(nome, telefone, email);
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(uri))
+                .uri(URI.create(baseUrl))
                 .header("Content-Type", "application/json")
-                .method("POST", BodyPublishers.ofString(json.toString()))
+                .POST(JsonBody.publish(cadastroAbrigo))
                 .build();
 
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        var response = client.send(request, JsonBody.handle(Object.class));
         int statusCode = response.statusCode();
-        String responseBody = response.body();
+
+        var responseBody = response.body();
         if (statusCode == 200) {
-            System.out.println("Abrigo cadastrado com sucesso!");
-            System.out.println(responseBody);
+            println("Abrigo cadastrado com sucesso!");
+            println(responseBody);
         } else if (statusCode == 400 || statusCode == 500) {
-            System.out.println("Erro ao cadastrar o abrigo:");
-            System.out.println(responseBody);
+            println("Erro ao cadastrar o abrigo:");
+            println(responseBody);
         }
 
     }
 
     @CommandOption(3)
     public void listarPetsDoAbrigo() throws IOException, InterruptedException {
-        System.out.println("Digite o id ou nome do abrigo:");
-        String idOuNome = new Scanner(System.in).nextLine();
+        println("Digite o id ou nome do abrigo:");
+        String idOuNome = consoleReader.nextLine();
 
-        String uri = "http://localhost:8080/abrigos/" + idOuNome + "/pets";
+        String uri = baseUrl + idOuNome + "/pets";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
-                .method("GET", BodyPublishers.noBody())
+                .GET()
                 .build();
+
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         int statusCode = response.statusCode();
         if (statusCode == 404 || statusCode == 500) {
-            System.out.println("ID ou nome não cadastrado!");
+            println("ID ou nome não cadastrado!");
             return;
         }
         String responseBody = response.body();
         JsonArray jsonArray = JsonParser.parseString(responseBody).getAsJsonArray();
-        System.out.println("Pets cadastrados:");
+        println("Pets cadastrados:");
         for (JsonElement element : jsonArray) {
             JsonObject jsonObject = element.getAsJsonObject();
             long id = jsonObject.get("id").getAsLong();
@@ -116,23 +124,23 @@ public class AbrigoService {
             String nome = jsonObject.get("nome").getAsString();
             String raca = jsonObject.get("raca").getAsString();
             int idade = jsonObject.get("idade").getAsInt();
-            System.out.println(id + " - " + tipo + " - " + nome + " - " + raca + " - " + idade + " ano(s)");
+            println(id + " - " + tipo + " - " + nome + " - " + raca + " - " + idade + " ano(s)");
         }
     }
 
     @CommandOption(4)
     public void importarPetsDoAbrigo() throws IOException, InterruptedException {
-        System.out.println("Digite o id ou nome do abrigo:");
-        String idOuNome = new Scanner(System.in).nextLine();
+        println("Digite o id ou nome do abrigo:");
+        String idOuNome = consoleReader.nextLine();
 
-        System.out.println("Digite o nome do arquivo CSV:");
-        String nomeArquivo = new Scanner(System.in).nextLine();
+        println("Digite o nome do arquivo CSV:");
+        String nomeArquivo = consoleReader.nextLine();
 
         BufferedReader reader;
         try {
             reader = new BufferedReader(new FileReader(nomeArquivo));
         } catch (IOException e) {
-            System.out.println("Erro ao carregar o arquivo: " + nomeArquivo);
+            println("Erro ao carregar o arquivo: " + nomeArquivo);
             return;
         }
         String line;
@@ -153,7 +161,7 @@ public class AbrigoService {
             json.addProperty("cor", cor);
             json.addProperty("peso", peso);
 
-            String uri = "http://localhost:8080/abrigos/" + idOuNome + "/pets";
+            String uri = baseUrl + idOuNome + "/pets";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(uri))
                     .header("Content-Type", "application/json")
@@ -164,13 +172,13 @@ public class AbrigoService {
             int statusCode = response.statusCode();
             String responseBody = response.body();
             if (statusCode == 200) {
-                System.out.println("Pet cadastrado com sucesso: " + nome);
+                println("Pet cadastrado com sucesso: " + nome);
             } else if (statusCode == 404) {
-                System.out.println("Id ou nome do abrigo não encontrado!");
+                println("Id ou nome do abrigo não encontrado!");
                 break;
             } else if (statusCode == 400 || statusCode == 500) {
-                System.out.println("Erro ao cadastrar o pet: " + nome);
-                System.out.println(responseBody);
+                println("Erro ao cadastrar o pet: " + nome);
+                println(responseBody);
                 break;
             }
         }
