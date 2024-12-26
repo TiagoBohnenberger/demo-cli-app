@@ -23,4 +23,10 @@ public final class Wait {
             }
         }
     }
+
+    public void signalAll() {
+        synchronized (conditional) {
+            conditional.notifyAll();
+        }
+    }
 }

@@ -35,7 +35,11 @@ public class UserInputHandler implements Runnable {
         while (reader.isNotExit()) {
             consoleReaderWait.ifNecessary();
 
+            if (reader.isExit()) break;
+
             commandHandler.handle(reader.poll());
+
+            consoleReaderWait.signalAll();
         }
     }
 }

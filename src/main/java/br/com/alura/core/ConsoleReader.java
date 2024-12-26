@@ -1,25 +1,22 @@
 package br.com.alura.core;
 
 import java.io.Closeable;
-import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import br.com.alura.util.Conditional;
-import br.com.alura.util.Wait;
+import br.com.alura.util.Try;
 
 import static br.com.alura.util.Functions.print;
 
 public class ConsoleReader implements Runnable, Closeable, Conditional {
     private static volatile ConsoleReader INSTANCE;
 
-    private final UserInputHolder userInputHolder;
-    private final Scanner scanner;
-    private final Wait userInputWait;
+    private final UserInputHolder holder;
+    private final ScannerWrapper scannerWrapper;
 
-    private ConsoleReader(UserInputHolder userInputHolder) {
-        this.userInputHolder = userInputHolder;
-        this.userInputWait = new Wait(userInputHolder);
-        this.scanner = new Scanner(System.in);
+    private ConsoleReader(UserInputHolder holder) {
+        this.holder = holder;
+        this.scannerWrapper = ScannerWrapper.instance();
     }
 
     public static ConsoleReader instance() {
@@ -37,40 +34,51 @@ public class ConsoleReader implements Runnable, Closeable, Conditional {
 
     @Override
     public void run() {
-        while (userInputHolder.isNotExit()) {
+        while (holder.isNotExit()) {
             print("Opção: ");
-            int userInput = scanner.nextInt();
-            userInputHolder.put(userInput);
-
-            userInputWait.ifNecessary();
+            int userInput = Integer.parseInt(scannerWrapper.nextLine());
+            holder.put(userInput);
 
             synchronized (this) {
                 this.notifyAll();
+
+                if (this.isExit()) break;
+
+                Try.of(() -> this.wait());
             }
-            System.out.println("Resultado atual -> " + userInput);
+
         }
     }
 
     @Override
     public void close() {
-        scanner.close();
+        scannerWrapper.close();
     }
 
     public Integer poll() {
-        return userInputHolder.poll();
+        return holder.poll();
     }
 
     public boolean isNotExit() {
-        return userInputHolder.isNotExit();
+        return holder.isNotExit();
     }
 
     @Override
     public boolean satisfy() {
-        return userInputHolder.noResult();
+        return holder.noResult();
+    }
+
+    public String nextLine() {
+        return scannerWrapper.nextLine();
+    }
+
+    public boolean isExit() {
+        return !isNotExit();
     }
 
     private static class UserInputHolder implements Conditional {
         final AtomicInteger result = new AtomicInteger(0);
+
 
         boolean noResult() {
             return !containsResult();
