@@ -9,7 +9,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Functions {
 
-    public static void println(Object msg) {
+    public static <T> void println(T msg) {
         System.out.println(msg);
     }
 

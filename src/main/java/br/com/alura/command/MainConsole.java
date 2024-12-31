@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 
 import br.com.alura.core.Eager;
 import br.com.alura.util.Functions;
+import br.com.alura.util.SimpleFunction;
 import br.com.alura.util.Try;
 import lombok.extern.log4j.Log4j2;
 
@@ -27,7 +28,7 @@ class MainConsole {
     private void welcome() {
         Try.with("* ADOPET APP //")
                 .apply(Functions::printAnsiArt)
-                .orElse(Functions::println);
+                .orElse((SimpleFunction) Functions::println);
 
         menu();
 

@@ -1,12 +1,9 @@
 package br.com.alura.service;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
@@ -18,10 +15,7 @@ import br.com.alura.command.CommandOption;
 import br.com.alura.core.CLICommand;
 import br.com.alura.core.ConsoleReader;
 import br.com.alura.domain.Abrigo;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import br.com.alura.domain.Pet;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +26,7 @@ import static br.com.alura.util.Functions.println;
 @CLICommand
 @ApplicationScoped
 public class AbrigoService {
+
     private final String baseUrl;
     private final HttpClient client;
     private final ConsoleReader consoleReader;
@@ -56,7 +51,7 @@ public class AbrigoService {
         List<Abrigo> abrigos = response.body();
 
         if (abrigos.isEmpty()) {
-            println("Não há abrigos cadastrados");
+            println("Não há abrigos cadastrados!");
             return;
         }
 
@@ -108,24 +103,15 @@ public class AbrigoService {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        int statusCode = response.statusCode();
+        HttpResponse<List<Pet>> petsDoAbrigoResponse = client.send(request, JsonBody.handle(new TypeToken<List<Pet>>() {}.getType()));
+
+        int statusCode = petsDoAbrigoResponse.statusCode();
         if (statusCode == 404 || statusCode == 500) {
             println("ID ou nome não cadastrado!");
             return;
         }
-        String responseBody = response.body();
-        JsonArray jsonArray = JsonParser.parseString(responseBody).getAsJsonArray();
-        println("Pets cadastrados:");
-        for (JsonElement element : jsonArray) {
-            JsonObject jsonObject = element.getAsJsonObject();
-            long id = jsonObject.get("id").getAsLong();
-            String tipo = jsonObject.get("tipo").getAsString();
-            String nome = jsonObject.get("nome").getAsString();
-            String raca = jsonObject.get("raca").getAsString();
-            int idade = jsonObject.get("idade").getAsInt();
-            println(id + " - " + tipo + " - " + nome + " - " + raca + " - " + idade + " ano(s)");
-        }
+
+        petsDoAbrigoResponse.body().forEach(System.out::println);
     }
 
     @CommandOption(4)
@@ -136,52 +122,23 @@ public class AbrigoService {
         println("Digite o nome do arquivo CSV:");
         String nomeArquivo = consoleReader.nextLine();
 
-        BufferedReader reader;
-        try {
-            reader = new BufferedReader(new FileReader(nomeArquivo));
-        } catch (IOException e) {
-            println("Erro ao carregar o arquivo: " + nomeArquivo);
-            return;
+        List<Pet> pets = CsvReader.read(nomeArquivo, Pet.class);
+
+        String uri = baseUrl + idOuNome + "/pets";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .header("Content-Type", "application/json")
+                .POST(JsonBody.publish(pets))
+                .build();
+
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        String responseBody = response.body();
+        if (statusCode == 200) {
+            println("Pets cadastrado com sucesso");
+        } else {
+            println("Erro ao cadastrar o pets");
+            println(responseBody);
         }
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] campos = line.split(",");
-            String tipo = campos[0];
-            String nome = campos[1];
-            String raca = campos[2];
-            int idade = Integer.parseInt(campos[3]);
-            String cor = campos[4];
-            Float peso = Float.parseFloat(campos[5]);
-
-            JsonObject json = new JsonObject();
-            json.addProperty("tipo", tipo.toUpperCase());
-            json.addProperty("nome", nome);
-            json.addProperty("raca", raca);
-            json.addProperty("idade", idade);
-            json.addProperty("cor", cor);
-            json.addProperty("peso", peso);
-
-            String uri = baseUrl + idOuNome + "/pets";
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(uri))
-                    .header("Content-Type", "application/json")
-                    .method("POST", BodyPublishers.ofString(json.toString()))
-                    .build();
-
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            int statusCode = response.statusCode();
-            String responseBody = response.body();
-            if (statusCode == 200) {
-                println("Pet cadastrado com sucesso: " + nome);
-            } else if (statusCode == 404) {
-                println("Id ou nome do abrigo não encontrado!");
-                break;
-            } else if (statusCode == 400 || statusCode == 500) {
-                println("Erro ao cadastrar o pet: " + nome);
-                println(responseBody);
-                break;
-            }
-        }
-        reader.close();
     }
 }

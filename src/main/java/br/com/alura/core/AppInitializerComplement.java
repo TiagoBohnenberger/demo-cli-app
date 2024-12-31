@@ -1,6 +1,8 @@
 package br.com.alura.core;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -23,6 +25,7 @@ import jakarta.enterprise.inject.spi.ProcessBean;
 
 import br.com.alura.util.ClassUtils;
 import br.com.alura.util.Functions;
+import br.com.alura.util.SimpleFunction;
 import br.com.alura.util.Try;
 import lombok.extern.log4j.Log4j2;
 
@@ -53,7 +56,19 @@ class AppInitializerComplement implements Extension {
     private void loadExternalConfigurations(Properties properties) throws IOException, URISyntaxException {
         String path = "application.properties";
         ClassLoader cl = ClassUtils.getDefaultClassLoader();
-        URL url = (cl != null ? cl.getResource(path) : ClassLoader.getSystemResource(path));
+
+        if (cl == null) {
+            return;
+        }
+
+        try (InputStream externalConfig = cl.getResourceAsStream(path)) {
+            if (externalConfig != null) {
+                properties.load(new InputStreamReader(externalConfig));
+                log.debug("External config file \"{}\" loaded", path);
+                return;
+            }
+        }
+        URL url = cl.getResource(path);
 
         if (url == null) {
             return;
@@ -67,7 +82,7 @@ class AppInitializerComplement implements Extension {
     private void beforeShutdown(@Observes BeforeShutdown event) {
         Try.with("* ATÉ MAIS //")
                 .apply(Functions::printAnsiArt)
-                .orElse(Functions::println);
+                .orElse((SimpleFunction) Functions::println);
     }
 
     private void initEagerBeans(BeanManager beanManager) {
