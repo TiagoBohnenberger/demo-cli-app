@@ -84,7 +84,7 @@ public class AbrigoService {
 
         var responseBody = response.body();
         if (statusCode == 200) {
-            println("Abrigo cadastrado com sucesso!");
+            println("Abrigo \"{0}\" cadastrado com sucesso!", cadastroAbrigo.nome());
             println(responseBody);
         } else if (statusCode == 400 || statusCode == 500) {
             println("Erro ao cadastrar o abrigo:");
