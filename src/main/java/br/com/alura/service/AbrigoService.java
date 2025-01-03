@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -97,21 +98,27 @@ public class AbrigoService {
         println("Digite o id ou nome do abrigo:");
         String idOuNome = consoleReader.nextLine();
 
-        String uri = baseUrl + idOuNome + "/pets";
+        String uri = baseUrl + "/" + idOuNome + "/pets";
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
                 .GET()
                 .build();
 
-        HttpResponse<List<Pet>> petsDoAbrigoResponse = client.send(request, JsonBody.handle(new TypeToken<List<Pet>>() {}.getType()));
+        HttpResponse<Object> response = client.send(request, JsonBody.handle(Object.class));
 
-        int statusCode = petsDoAbrigoResponse.statusCode();
+        int statusCode = response.statusCode();
         if (statusCode == 404 || statusCode == 500) {
             println("ID ou nome não cadastrado!");
             return;
         }
 
-        petsDoAbrigoResponse.body().forEach(System.out::println);
+        Object petsDoAbrigo = response.body();
+        if (petsDoAbrigo instanceof Collection<?> pets) {
+            if (pets.isEmpty()) {
+                println("Não há pets cadastrados no abrigo " + idOuNome);
+            }
+            pets.forEach(System.out::println);
+        }
     }
 
     @CommandOption(4)
