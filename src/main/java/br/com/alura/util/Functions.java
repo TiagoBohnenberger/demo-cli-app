@@ -2,19 +2,19 @@ package br.com.alura.util;
 
 import java.io.IOException;
 
-import br.com.alura.command.CommandOption;
 import com.github.lalyos.jfiglet.FigletFont;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.ObjectUtils;
 
 @UtilityClass
 public class Functions {
 
-    public static <T> void println(T msg) {
-        System.out.println(msg);
+    public static <T> void println(T obj) {
+        System.out.println(ObjectUtils.defaultIfNull(obj, ""));
     }
 
     public static void print(String msg) {
-        System.out.print(msg);
+        System.out.print(ObjectUtils.defaultIfNull(msg, ""));
     }
 
 
@@ -24,17 +24,5 @@ public class Functions {
 
     public static void printAnsiArt(String msg) throws IOException {
         System.out.println(FigletFont.convertOneLine(msg));
-    }
-
-    public static boolean isClassCommandOption(Object classCommand) {
-        if (classCommand == null) {
-            return false;
-        }
-        return classCommand.getClass().isAnnotationPresent(CommandOption.class);
-    }
-
-    public static void systemExit(int status) {
-        println("Até mais!");
-        System.exit(status);
     }
 }
