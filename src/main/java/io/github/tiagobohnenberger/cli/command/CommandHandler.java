@@ -3,7 +3,6 @@ package io.github.tiagobohnenberger.cli.command;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import io.github.tiagobohnenberger.cli.core.CommandExecutor;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

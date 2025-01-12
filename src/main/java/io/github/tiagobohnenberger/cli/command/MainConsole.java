@@ -5,9 +5,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import io.github.tiagobohnenberger.cli.core.Eager;
+import io.github.tiagobohnenberger.cli.tryy.SimpleFunction;
+import io.github.tiagobohnenberger.cli.tryy.Try;
 import io.github.tiagobohnenberger.cli.util.Functions;
-import io.github.tiagobohnenberger.cli.util.SimpleFunction;
-import io.github.tiagobohnenberger.cli.util.Try;
 import lombok.extern.log4j.Log4j2;
 
 import static io.github.tiagobohnenberger.cli.util.Functions.println;

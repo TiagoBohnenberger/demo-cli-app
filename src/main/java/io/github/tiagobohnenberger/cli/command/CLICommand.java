@@ -1,4 +1,4 @@
-package io.github.tiagobohnenberger.cli.core;
+package io.github.tiagobohnenberger.cli.command;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

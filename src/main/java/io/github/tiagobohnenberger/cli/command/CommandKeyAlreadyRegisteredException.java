@@ -1,4 +1,4 @@
-package io.github.tiagobohnenberger.cli.core;
+package io.github.tiagobohnenberger.cli.command;
 
 public class CommandKeyAlreadyRegisteredException extends RuntimeException {
     public CommandKeyAlreadyRegisteredException(String msg) {

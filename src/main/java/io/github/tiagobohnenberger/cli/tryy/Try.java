@@ -1,12 +1,10 @@
-package io.github.tiagobohnenberger.cli.util;
+package io.github.tiagobohnenberger.cli.tryy;
 
 import java.util.Optional;
 import jakarta.annotation.Nullable;
 
-import static java.util.Objects.requireNonNull;
-
 @FunctionalInterface
-public interface Try<T, E extends Exception> {
+public interface Try<T, E extends Throwable> {
 
     T apply() throws E;
 
@@ -21,26 +19,24 @@ public interface Try<T, E extends Exception> {
     static <T> T lifted(Try<? extends T, ?> function) {
         try {
             return function.apply();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
-    static <E extends Exception> Result<Void> of(ThrowingSimpleFunction<E> supplier) {
-        requireNonNull(supplier);
+    static <E extends Throwable> Result<Void> of(ThrowingSimpleFunction<E> supplier) {
         try {
             supplier.apply();
             return new Success<>();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return new Failure<>(e);
         }
     }
 
-    static <T> Optional<T> of(Try<? extends T, ? extends Exception> function) {
-        requireNonNull(function);
+    static <T> Optional<T> of(Try<? extends T, ? extends Throwable> function) {
         try {
             return Optional.ofNullable(function.apply());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return Optional.empty();
         }
     }
@@ -113,12 +109,12 @@ public interface Try<T, E extends Exception> {
             this.initStep = initStep;
         }
 
-        Failure(Exception e) {
+        Failure(Throwable e) {
             this.initStep = new InitiationStep<>(e);
         }
 
         @Override
-        public Exception getException() {
+        public Throwable getException() {
             return initStep.exception;
         }
 
@@ -140,14 +136,15 @@ public interface Try<T, E extends Exception> {
 
     class InitiationStep<T> {
         @Nullable T initVal;
-        @Nullable Exception exception;
+        @Nullable
+        Throwable exception;
         boolean failed;
 
         InitiationStep(@Nullable T initVal) {
             this.initVal = initVal;
         }
 
-        InitiationStep(@Nullable Exception exception) {
+        InitiationStep(@Nullable Throwable exception) {
             this.exception = exception;
             this.initVal = null;
             if (exception != null) {

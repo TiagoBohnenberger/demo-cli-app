@@ -1,4 +1,4 @@
-package io.github.tiagobohnenberger.cli.util;
+package io.github.tiagobohnenberger.cli.tryy;
 
 @FunctionalInterface
 public interface ThrowingSupplier<T, E extends Exception> {

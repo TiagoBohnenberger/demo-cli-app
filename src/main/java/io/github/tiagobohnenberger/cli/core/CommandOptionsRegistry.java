@@ -10,6 +10,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import io.github.tiagobohnenberger.cli.command.CLICommand;
+import io.github.tiagobohnenberger.cli.command.CommandKeyAlreadyRegisteredException;
 import io.github.tiagobohnenberger.cli.command.CommandOption;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ObjectUtils;

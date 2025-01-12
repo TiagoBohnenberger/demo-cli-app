@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import io.github.tiagobohnenberger.cli.util.Try;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import io.github.tiagobohnenberger.cli.tryy.Try;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 

@@ -3,8 +3,8 @@ package io.github.tiagobohnenberger.cli.core;
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.tiagobohnenberger.cli.tryy.Try;
 import io.github.tiagobohnenberger.cli.util.Conditional;
-import io.github.tiagobohnenberger.cli.util.Try;
 
 import static io.github.tiagobohnenberger.cli.util.Functions.print;
 

@@ -1,10 +1,11 @@
-package io.github.tiagobohnenberger.cli.core;
+package io.github.tiagobohnenberger.cli.command;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Any;
 import jakarta.inject.Inject;
 
-import io.github.tiagobohnenberger.cli.util.Try;
+import io.github.tiagobohnenberger.cli.core.CommandOptionsRegistry;
+import io.github.tiagobohnenberger.cli.tryy.Try;
 import lombok.extern.log4j.Log4j2;
 
 @ApplicationScoped

@@ -1,4 +1,4 @@
-package io.github.tiagobohnenberger.cli.util;
+package io.github.tiagobohnenberger.cli.tryy;
 
 import java.util.function.Consumer;
 import jakarta.annotation.Nullable;

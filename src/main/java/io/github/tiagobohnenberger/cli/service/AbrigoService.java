@@ -12,12 +12,12 @@ import java.util.Properties;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import com.google.gson.reflect.TypeToken;
+import io.github.tiagobohnenberger.cli.command.CLICommand;
 import io.github.tiagobohnenberger.cli.command.CommandOption;
-import io.github.tiagobohnenberger.cli.core.CLICommand;
 import io.github.tiagobohnenberger.cli.core.ConsoleReader;
 import io.github.tiagobohnenberger.cli.domain.Abrigo;
 import io.github.tiagobohnenberger.cli.domain.Pet;
-import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.github.tiagobohnenberger.cli.util.Functions.println;

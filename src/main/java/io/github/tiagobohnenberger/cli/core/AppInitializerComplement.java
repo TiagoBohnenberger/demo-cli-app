@@ -23,10 +23,10 @@ import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.ProcessBean;
 
+import io.github.tiagobohnenberger.cli.tryy.SimpleFunction;
+import io.github.tiagobohnenberger.cli.tryy.Try;
 import io.github.tiagobohnenberger.cli.util.ClassUtils;
 import io.github.tiagobohnenberger.cli.util.Functions;
-import io.github.tiagobohnenberger.cli.util.SimpleFunction;
-import io.github.tiagobohnenberger.cli.util.Try;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
